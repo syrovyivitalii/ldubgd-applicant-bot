@@ -14,5 +14,5 @@ public interface InlineKeyboardRepository extends JpaRepository <InlineKeyboard,
     List<InlineKeyboard> findByMenu(String menu);
 
     @Query(value = "select u.callback from InlineKeyboard u where u.menu = :menu")
-    ArrayList findByCallback(String menu);
+    ArrayList findByMenuList(String menu);
 }

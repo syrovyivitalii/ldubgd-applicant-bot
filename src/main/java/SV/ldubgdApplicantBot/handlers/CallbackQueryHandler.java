@@ -52,15 +52,17 @@ public class CallbackQueryHandler implements Handler <CallbackQuery>{
         Users users;
         Optional<Users> byTelegramId = usersRepository.findByTelegramId(chatID);
         users = byTelegramId.get();
-        ArrayList<String> byBachelor = inlineKeyboardRepository.findByCallback("Бакалаврат спеціальності");
-        if (callbackText.equals("Бакалаврат ПЗСО")){
-            Menu bySpeciality = menuRepository.findByTitle("speciality");
+        ArrayList<String> byBachelor = inlineKeyboardRepository.findByMenuList("Бакалаврат ПЗСО");
+        ArrayList byMaster = inlineKeyboardRepository.findByMenuList("Магістратура");
+        ArrayList byEducationLevel = inlineKeyboardRepository.findByMenuList("/educational_level");
+        if (byEducationLevel.contains(callbackText)){
+            Menu bySpeciality = menuRepository.findByTitle(callbackText);
             sendMessage.setText(bySpeciality.getMenu());
-            List<InlineKeyboard> byBachelorSpeciality = inlineKeyboardRepository.findByMenu("Бакалаврат спеціальності");
+            List<InlineKeyboard> byBachelorSpeciality = inlineKeyboardRepository.findByMenu(callbackText);
             sendMessage.setReplyMarkup(createInlineKeyboard.getCreateInlineKeyboard(byBachelorSpeciality));
             users.setEducational_level(callbackText);
             usersRepository.save(users);
-        } else if (byBachelor.contains(callbackText)) {
+        } else if (byBachelor.contains(callbackText) || byMaster.contains(callbackText)) {
             Menu bachelor = menuRepository.findByTitle("меню спеціальності");
             sendMessage.setText(bachelor.getMenu());
             List<InlineKeyboard> byBachelorMenu = inlineKeyboardRepository.findByMenu("Меню");
@@ -79,6 +81,9 @@ public class CallbackQueryHandler implements Handler <CallbackQuery>{
                 sendMessage.setText(chooseOrder.getMenu());
                 List<InlineKeyboard> byTypeOrder = inlineKeyboardRepository.findByMenu("Тип замовлення");
                 sendMessage.setReplyMarkup(createInlineKeyboard.getCreateInlineKeyboard(byTypeOrder));
+            } else if (users.getEducational_level().equals("Магістратура")) {
+                String master = stagesAdmissionRepository.findMaster(users.getEducational_level(), users.getSpeciality());
+                sendMessage.setText(master);
             }
         } else if (callbackText.equals("Інформація")) {
             Menu byFaculty = menuRepository.findByTitle("кафедра");
@@ -92,7 +97,7 @@ public class CallbackQueryHandler implements Handler <CallbackQuery>{
             users.setGovernment_order(callbackText);
             users.setFull_time("Денна");
             usersRepository.save(users);
-            String byLevelSpeciality = stagesAdmissionRepository.findByLevelSpeciality(users.getEducational_level(), users.getSpeciality(), users.getGovernment_order(), users.getFull_time());
+            String byLevelSpeciality = stagesAdmissionRepository.findBachelor(users.getEducational_level(), users.getSpeciality(), users.getGovernment_order(), users.getFull_time());
             sendMessage.setText(byLevelSpeciality);
         } else if (callbackText.equals("Кошти фізичних осіб")) {
             users.setGovernment_order(callbackText);
@@ -104,7 +109,7 @@ public class CallbackQueryHandler implements Handler <CallbackQuery>{
         } else if (callbackText.equals("Денна") || callbackText.equals("Заочна")) {
             users.setFull_time(callbackText);
             usersRepository.save(users);
-            String byLevelSpeciality = stagesAdmissionRepository.findByLevelSpeciality(users.getEducational_level(), users.getSpeciality(), users.getGovernment_order(), users.getFull_time());
+            String byLevelSpeciality = stagesAdmissionRepository.findBachelor(users.getEducational_level(), users.getSpeciality(), users.getGovernment_order(), users.getFull_time());
             sendMessage.setText(byLevelSpeciality);
         }
         messageSender.sendMessage(sendMessage);
